@@ -1,0 +1,262 @@
+
+@if(api.currentUser()?.nameClient === 'root'){
+    <div class="admin-container">
+        <div class="header">
+            <a routerLink="/services" class="back-link">Вернуться в котолог</a>
+            <h1>Панель управления</h1>
+        </div>
+        
+        <div class="tabs">
+        <button class="tab-btn" [class.active]="activeTab()==='bookings'" (click)="getAllBooking(); activeTab.set('bookings')">Бронирования</button>
+        <button class="tab-btn" [class.active]="activeTab()==='clients'" (click)="getAllClient(); activeTab.set('clients')">Клиенты</button>
+        <button class="tab-btn" [class.active]="activeTab()==='services'" (click)="getAllService(); activeTab.set('services')">Услуги</button>
+        </div>
+    </div>
+
+    @if(activeTab() === 'bookings'){
+        <div class="table-card">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Клиент</th>
+                        <th>Услуга</th>
+                        <th>Дата и время</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for(b of booking(); track b.idBooking){
+                        <tr>
+                            <td><strong>#{{b.idBooking}}</strong></td>
+                            <td>
+                                <div class="client-cell">
+                                    <strong>{{b.client?.nameClient || 'Клиент #'+b.idClient}}</strong>
+                                    <small>{{b.client?.phoneClient}}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="service-cell">
+                                    <strong>{{b.service?.nameService || 'Услуга #'+b.idService}}</strong>
+                                    <small>{{b.service?.priceService}} руб.</small>
+                                </div>
+                            </td>
+                            <td>{{b.startService}}</td>
+                            <td>
+                                @if(b.status == bookingStatus.Created){
+                                    <span class="badge badge-created">Создана</span>
+                                }
+                                @else if (b.status == bookingStatus.Confirmed){
+                                    <span class="badge badge-confirmed">Подтверждена</span>
+                                }
+                                @else if(b.status == bookingStatus.Cancelled){
+                                    <span class="badge badge-cancelled">Отменена</span>
+                                } 
+                            </td>
+                            <td class="actions-cell">
+                                @if(b.status !== bookingStatus.Confirmed){
+                                    <button class="btn-action btn-confirm" (click)="changeStatus(b.idBooking,bookingStatus.Confirmed)">Подтвердить</button>
+                                }
+                                @if(b.status !== bookingStatus.Cancelled){
+                                    <button class="btn-action btn-cancel" (click)="changeStatus(b.idBooking,bookingStatus.Cancelled)">Отменить</button>
+                                }
+                                <button class="btn-action btn-delete" (click)="deleteBooking(b.idBooking)">Удалить</button>
+                            </td>
+                        </tr>
+                    }@empty{
+                        <tr>
+                            <td colspan="6" class="empty-cell">Нет бронирований</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    @else if(activeTab() === 'clients'){
+        <div class="table-card">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Имя клиента</th>
+                        <th>Телефон</th>
+                        <th>Email</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for(client of clients(); track client.idClient){
+                        <tr>
+                            <td><strong>#{{client.idClient}}</strong></td>
+                            <td><strong>{{client.nameClient}}</strong></td>
+                            <td>{{client.phoneClient}}</td>
+                            <td>{{client.emailClient}}</td>
+                            <td class="actions-cell">
+                                @if(client.nameClient !== 'root'){
+                                    <button class="btn-action btn-delete" (click)="deleteClient(client.idClient)">Удалить</button>
+                                }
+                                <button class="btn-action btn-delete" (click)="editClient(client.idClient)">Редактировать</button>
+                            </td>
+                        </tr>
+                    }@empty{
+                        <tr>
+                            <td colspan="5" class="empty-cell">Список клиентов пуст</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            @if(editClientflag()){
+                <div class="add-service-card" style="margin-top: 24px;">
+                    <h3>Редактирование данных клиента #{{editClientData()?.idClient}}</h3>
+                    <form (submit)="onSaveClient($event)" class="service-form">
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Имя клиента</label>
+                                <input type="text" [value]="editClientName()" required (input)="editClientName.set($any($event.target).value)">
+                            </div>
+                            <div class="form-field">
+                                <label>Телефон</label>
+                                <input type="tel" [value]="editClientPhone()" required (input)="editClientPhone.set($any($event.target).value)">
+                            </div>
+                            <div class="form-field">
+                                <label>Email</label>
+                                <input type="email" [value]="editClientEmail()" required (input)="editClientEmail.set($any($event.target).value)">
+                            </div>
+                            <div class="form-field">
+                                <label>Новый пароль (или оставить старый)</label>
+                                <input type="password" [value]="editClientPassword()" required (input)="editClientPassword.set($any($event.target).value)">
+                            </div>
+                        </div>
+                        <div class="form-actions" style="margin-top: 10px;">
+                            <button type="submit" class="btn-submit-service">Сохранить изменения</button>
+                            <button type="button" class="btn-action btn-cancel" style="margin-left: 8px; padding: 11px 16px; font-size: 14px;" (click)="cancelEditClient()">Отменить</button>
+                        </div>
+                    </form>
+
+                    @if(errorMessageClient()){
+                        <div class="error" style="display: flex; align-items: center; justify-content: center; color: #dc2626; font-weight: 600; margin-top: 14px;">
+                            <p>{{errorMessageClient()}}</p>
+                        </div>
+                    }
+                </div>
+            }
+
+
+
+
+
+
+
+        </div>
+    }
+    @else if(activeTab() === 'services'){
+        <div class="add-service-card">
+            <h3>Добавление новой услуги</h3>
+            <form (submit)="onAddService($event)" class="service-form">
+                <div class="form-row">
+                    <div class="form-field">
+                        <label>Название услуги</label>
+                        <input type="text"  required (input)="addServiceName.set($any($event.target).value)">
+                    </div>
+                    <div class="form-field">
+                        <label>Цена (руб.)</label>
+                        <input type="number"  required (input)="addServicePrice.set($any($event.target).value)">
+                    </div>
+                    <div class="form-field">
+                        <label>Длительность (мин)</label>
+                        <input type="number"  required (input)="addServiceTime.set($any($event.target).value)">
+                    </div>
+                </div>
+                <div class="form-row"> 
+                    <div class="form-field form-field-full">
+                        <label>Описание услуги</label>
+                        <input type="text" placeholder="Краткое описание процедуры и деталей..." required (input)="addServiceDescription.set($any($event.target).value)">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit-service">+ Создать услугу</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="error" style="display: flex; align-items: center; justify-content: center; color: red; margin-top: 10px;">
+            <p>{{errorMessageAdd()}}</p>
+        </div>
+
+        <div class="table-card">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Название</th>
+                        <th>Описание</th>
+                        <th>Цена</th>
+                        <th>Длительность</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for(s of services(); track s.idService){
+                        <tr>
+                            <td><strong>#{{s.idService}}</strong></td>
+                            <td><strong>{{s.nameService}}</strong></td>
+                            <td><small class="desc-text">{{s.descriptionService}}</small></td>
+                            <td><span class="price-tag">{{s.priceService}} руб.</span></td>
+                            <td>{{s.timeService}} мин.</td>
+                            <td class="actions-cell">
+                                <button class="btn-action btn-delete" (click)="deleteService(s.idService)">Удалить</button>
+                                <button class="btn-action btn-edit" (click)="editService(s.idService)">Редактировать</button>
+                            </td>
+                        </tr>
+                    }@empty{
+                        <tr>
+                            <td colspan="6" class="empty-cell">Список услуг пуст</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            @if(isEditor()){
+                <div class="add-service-card">
+                <h3>Редактирование услуги</h3>
+                <form (submit)="updateNewService($event)" class="service-form">
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Название услуги</label>
+                            <input type="text"  required [value]="eddServiceName()" (input)="eddServiceName.set($any($event.target).value)">
+                        </div>
+                        <div class="form-field">
+                            <label>Цена (руб.)</label>
+                            <input type="number"  required [value]="eddServicePrice()" (input)="eddServicePrice.set($any($event.target).value)">
+                        </div>
+                        <div class="form-field">
+                            <label>Длительность (мин)</label>
+                            <input type="number"  required [value]="eddServiceTime()" (input)="eddServiceTime.set($any($event.target).value)">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field form-field-full">
+                            <label>Описание услуги</label>
+                            <input type="text"  [value]="eddServiceDescription()" required (input)="eddServiceDescription.set($any($event.target).value)">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-submit-service">Редактировать услугу</button>
+                            <button type="button" class="btn-submit-service" style="margin-left: 5px;" (click)="cancelEditor()">Отменить</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="error" style="display: flex; align-items: center; justify-content: center; color: red; margin-top: 10px;">
+                <p>{{errorMessageEdd()}}</p>
+            </div>
+
+            } 
+
+        </div>
+    }
+} @else {
+    <div class="access-denied">
+        <h2> Доступ запрещен</h2>
+        <p>Панель управления доступна только учетной записи администратора.</p>
+        <a routerLink="/services" class="back-link"> Вернуться в каталог услуг</a>
+    </div>
+}

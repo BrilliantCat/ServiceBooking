@@ -1,0 +1,33 @@
+<div class="container">
+    <div class="header">
+        <h1>Каталог услуг</h1>
+        <p>Выберите подходящую услугу для онлайн-записи</p>
+    </div>
+
+    <div class="search-container" style="margin-bottom: 20px;">
+        <input 
+            type="text"
+            class="search-input"
+            placeholder="Поиск услуги по названию..."
+            (input)="onSearch($event)"
+        />
+    </div>
+    <div class="services-grid">
+        @for(service of filteredServices();track service.idService){
+            <div class="service-card">
+                <div class="service-info">
+                    <h3>{{service.nameService}}</h3>
+                    <p class="description">{{service.descriptionService}}</p>
+                </div>
+
+                <div class="service-meta">
+                    <span class="duration">{{service.timeService}} мин.</span>
+                    <span class="price">{{service.priceService}} ₽</span>
+                </div>
+                <button class="book-btn" [routerLink]="['/booking',service.idService]">Записаться</button>
+            </div>
+        }@empty{
+            <p class="empty-state">Услуги пока не добавлены или сервер не отвечает</p>
+        }
+    </div>
+</div>

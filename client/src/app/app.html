@@ -1,0 +1,22 @@
+<header class="navbar">
+    <div class="nav-container">
+        <a routerLink="/services" class="logo">
+            <span>ServicesBooking</span>
+        </a>
+        <nav class="nav-links">
+            <a routerLink="/services" routerLinkActive="active">Каталог</a>
+            @if(api.currentUser()?.nameClient ==='root'){
+                <a routerLink="/admin" routerLinkActive="active">Панель управления</a>
+            }
+            @if(api.currentUser(); as user){
+                <a routerLink="/register" routerLinkActive="active">{{user.nameClient}}</a>
+            }@else{
+                <a routerLink="/register" routerLinkActive="active">Вход / Регистрация</a>
+            }
+        </nav>
+    </div>
+</header>
+
+<main class="content">
+    <router-outlet></router-outlet>
+</main>

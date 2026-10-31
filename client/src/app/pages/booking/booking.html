@@ -1,0 +1,58 @@
+<div class="booking-container">
+    <a routerLink="/services" class="back-link">Вернуться к каталогу услуг</a>
+
+    @if(service(); as s){
+        <div class="service-summary">
+            <h2>Оформление записи</h2>
+            <div class="summary-card">
+                <h3>{{s.nameService}}</h3>
+                <p>{{s.descriptionService}}</p>
+                <div class="meta">
+                    <span>Длительность: <strong>{{s.timeService}} мин.</strong></span>
+                    <span class="price">Стоимость: <strong>{{s.priceService}} руб.</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <form class="booking-form" (submit)="onSubmitBooking($event)">
+            <h3>Данные для записи</h3>
+
+            <div class="form-group">
+                <label>Выберите дату:</label>
+                <input type="date" required (change)="onDateChange($event)">
+            </div>
+
+
+            <div class="form-group">
+                <label>выберите вермя начала: </label>
+                <input type="time" required (change)="onTimeChange($event)">
+            </div>
+            @if(api.currentUser() == null){
+                <div class="form-group">
+                    <label>Контактный телефон: </label>
+                    <input type="tel" required (input)="onPhoneChange($event)">
+                </div>
+    
+                
+                <div class="form-group">
+                    <label>Пароль: </label>
+                    <input type="password" required (input)="onPasswordChange($event)">
+                </div>
+            }
+
+            @if (errorMessage()) {
+            <div class="alert alert-error">{{ errorMessage() }}</div>
+            }
+
+            @if(successMessage()){
+                <div class="alert alert-success">{{successMessage()}}</div>
+            }
+            <button type="submit" class="submit-btn" [disabled]="isSubmitting()">
+                {{ isSubmitting() ? 'Бронирование...' : 'Забронировать'}}
+            </button>
+        </form>
+    }@else{
+        <p>Загрузка информации об услуге...</p>
+    }
+
+</div>

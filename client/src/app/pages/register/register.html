@@ -1,0 +1,117 @@
+<div class="auth-container">
+
+    @if(!api.currentUser()){
+        <div class="auth-card">
+            <div class="tabs">
+                <button class="tab-btn" [class.active]="authMode() ==='login'" (click)="authMode.set('login'); errorMessage.set('')">
+                    Войти
+                </button>
+                <button class="tab-btn" [class.active]="authMode()==='register'" (click)="authMode.set('register'); errorMessage.set('')">
+                    Регистрация
+                </button> 
+            </div>
+
+            @if(authMode() ==='login'){
+                <form (submit)="onLogin($event)" class="form">
+                    <h2>Вход в личный кабинет</h2>
+                    <div class="form-group">
+                        <label>Телефон: </label>
+                        <input type="tel" required (input)="phone.set($any($event.target).value)">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Пароль: </label>
+                        <input type="password" required (input)="password.set($any($event.target).value)">
+                    </div>
+
+                    @if(errorMessage()){
+                        <div class="alert alert-error">{{errorMessage()}}</div>
+                    }
+
+                    <button type="submit" class="submit-btn" [disabled]="isSubmiting()">
+                        {{ isSubmiting() ?'Вход...':'Войти'}}
+                    </button>
+                </form>
+            }
+
+            @if(authMode() === 'register'){
+                <form (submit)="onRegister($event)" class="form">
+                    <h2>Регистрация нового клиента</h2>
+
+                    <div class="form-group">
+                        <label>Ваше имя:</label>
+                        <input type="text" required (input)="name.set($any($event.target).value)">
+                    </div>
+                    <div class="form-group">
+                        <label>Ваш телефон:</label>
+                        <input type="tel" required (input)="phone.set($any($event.target).value)">
+                    </div>
+                    <div class="form-group">
+                        <label>Ваш Email:</label>
+                        <input type="email" required (input)="email.set($any($event.target).value)">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Пароль:</label>
+                        <input type="password" required (input)="password.set($any($event.target).value)">
+                    </div>
+                    @if(errorMessage()){
+                        <div class="alert alert-error">{{errorMessage()}}</div>
+                    }
+                    <button type="submit"class="submit-btn" [disabled]="isSubmiting()">
+                        {{isSubmiting() ? 'Создание...':'Зарегистрироваться'}}
+                    </button>
+                </form>
+            }
+        </div>
+    }
+    @if(api.currentUser();as user){
+        <div class="profile-container">
+            <div class="profile-header">
+                <div class="user-info">
+                    <h2>{{user.nameClient}}</h2>
+                    <p>{{user.phoneClient}} | {{user.emailClient}}</p>
+                </div>
+                <button class="logout-btn" (click)="onLogout()">Выйти</button>
+            </div>
+
+            <div class="my-bookings-section">
+                <h3>Мои записи на услуги</h3>
+                @if(myBookings().length > 0){
+                    <div class="bookings-grid">
+                        @for(b of myBookings();track b.idBooking){
+                            <div class="booking-card">
+                                <div class="card-header">
+                                    <h4>{{b.service?.nameService || 'Услуга #'+b.idService}}</h4>
+                                    <span class="price">{{b.service?.priceService}} руб.</span>
+                                </div>
+                                <p class="time">Дата и время: <strong>{{b.startService}}</strong></p>
+
+                                <div class="card-footer">
+                                    <span class="badge" [class.badge-confirmed]="b.status === bookingStatus.Confirmed"
+                                                        [class.badge-created]="b.status === bookingStatus.Created"
+                                                        [class.badge-cancelled]="b.status === bookingStatus.Cancelled">
+                                    {{b.status === bookingStatus.Created ?'Создана': 
+                                      b.status === bookingStatus.Confirmed ? 'Подтверждена' : 'Отменена'}}
+                                    </span>
+
+                                    @if(b.status !== bookingStatus.Cancelled){
+                                        <button class="btn-cancel" (click)="cancelMyBooking(b.idBooking)">
+                                            Отменить запись
+                                        </button> 
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }@else{
+                    <div class="empty-state">
+                        <p>У вас пока нет активных записей</p>
+                        <a routerLink="/services" class="primary-link">Перейти в католог услуг</a>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+</div>
