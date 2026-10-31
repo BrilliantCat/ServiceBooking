@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "Hywit1faWbX2gRgrYFSMGgdkwH4+XzVambfheKqrI/w=",
+  "Source": "ServiceBooking.Api",
+  "BasePath": "_content/ServiceBooking.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
